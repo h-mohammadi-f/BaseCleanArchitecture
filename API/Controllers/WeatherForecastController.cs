@@ -1,3 +1,5 @@
+using Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -18,9 +20,11 @@ public class WeatherForecastController : ControllerBase
         _logger = logger;
     }
 
+    [Authorize(Roles = nameof(ApplicationRoleTypes.User))]
     [HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get()
     {
+        var x = User.Identity.Name;
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast
         {
             Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),

@@ -17,7 +17,7 @@ namespace API.Extensions
 
         public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
         {
-            services.AddIdentity<AppUser, AppUserRole>(opt =>
+            services.AddIdentityCore<AppUser>(opt =>
                 {
                     opt.User.RequireUniqueEmail = true;
                     opt.Password.RequiredLength = 8;
@@ -25,22 +25,34 @@ namespace API.Extensions
                     opt.Password.RequireUppercase = true;
                     opt.Password.RequireLowercase = true;
                     opt.Password.RequireDigit = true;
-                }).AddEntityFrameworkStores<ApplicationDbContext>()
-                  .AddDefaultTokenProviders();
+                    opt.Lockout.MaxFailedAccessAttempts = 5;
+                })
+                .AddRoles<AppUserRole>()
+                .AddRoleManager<RoleManager<AppUserRole>>()
+                .AddSignInManager<SignInManager<AppUser>>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Key"])),
-                            ClockSkew = TimeSpan.Zero
-                        }
-                    );
 
+
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Key"])),
+                    ClockSkew = TimeSpan.Zero
+                }
+                );
+
+            services.AddAuthorization();
             services.AddScoped<TokenService>();
             return services;
         }
