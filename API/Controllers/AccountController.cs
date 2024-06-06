@@ -49,23 +49,25 @@ namespace API.Controllers
                     return ValidationProblem();
                 }
 
-                if (!string.IsNullOrWhiteSpace(inboundUser.UserRole))
+                if (inboundUser.UserRoles.Count > 0)
                 {
-                    if (await _roleManager.RoleExistsAsync(inboundUser.UserRole))
-                    {
-                        ModelState.AddModelError("role", "Role is not exists.");
-                        return ValidationProblem();
-                    }
+                    foreach (var role in inboundUser.UserRoles)
+                        if (await _roleManager.RoleExistsAsync(role))
+                        {
+                            ModelState.AddModelError("role", "Role is not exists.");
+                            return ValidationProblem();
+                        }
                 }
                 else
                 {
-                    inboundUser.UserRole = nameof(ApplicationRoleTypes.User);
+                    inboundUser.UserRoles.Add(nameof(ApplicationRoleTypes.User));
                 }
 
                 var user = new AppUser { UserName = inboundUser.Username, DisplayName = inboundUser.DisplayName, Email = inboundUser.Email };
 
                 var result = await _userManager.CreateAsync(user, inboundUser.Password);
-                await _userManager.AddToRoleAsync(user, inboundUser.UserRole);
+                foreach (var role in inboundUser.UserRoles)
+                    await _userManager.AddToRoleAsync(user, role);
 
                 var errors = result.Errors.Select(e => e.Description);
 
@@ -117,11 +119,13 @@ namespace API.Controllers
 
         private async Task<UserDto> CreateUserObjectAsync(AppUser user)
         {
+            var roles = await _userManager.GetRolesAsync(user);
             return new UserDto
             {
                 DisplayName = user.DisplayName,
                 Token = await _tokenService.CreateTokenAsync(user),
-                Username = user.UserName
+                Username = user.UserName,
+                UserRoles = roles?.ToList()
             };
         }
     }

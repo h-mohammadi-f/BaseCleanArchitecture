@@ -13,5 +13,7 @@ namespace Persistence
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
         }
+
+        public virtual DbSet<Company> Companies { get; set; }
     }
 }

@@ -3,6 +3,9 @@ import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
+  pages: {
+    signIn: "/auth/login",
+  },
   session: {
     strategy: "jwt",
   },
@@ -20,6 +23,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials, req) {
         // Add logic here to look up the user from the credentials supplied
+        console.log("here");
         const res = await fetch("http://localhost:5052/api/Account/login", {
           method: "POST",
           headers: {
@@ -44,8 +48,8 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, profile, account, user }) {
       if (user) {
-        token.username=user.username;
-        token.apitoken=user.token;
+        token.username = user.username;
+        token.apitoken = user.token;
       }
       return token;
     },

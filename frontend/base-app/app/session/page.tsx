@@ -2,6 +2,7 @@ import { getSession } from "../actions/authActions";
 
 export default async function Session() {
   const session = await getSession();
+
   return (
     <div>
       <div className="bg-blue-200 border-2 border-blue-500">

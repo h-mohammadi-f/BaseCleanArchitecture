@@ -1,6 +1,15 @@
 using System.Diagnostics;
+using System.Reflection;
 using API.Extensions;
+using API.Middleware;
+using Application;
+using Application.Abstractions;
+using Application.Companies;
+using Application.Core;
 using Domain;
+using FluentValidation.AspNetCore;
+using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -24,6 +33,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
 });
 
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddMediatR(cfg=>cfg.RegisterServicesFromAssembly(typeof(ForDependecyInjection).Assembly));
+builder.Services.AddAutoMapper(typeof(ForDependecyInjection).Assembly);
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddIdentityServices(builder.Configuration);
 
 var app = builder.Build();
@@ -46,6 +60,8 @@ catch (Exception ex)
 
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

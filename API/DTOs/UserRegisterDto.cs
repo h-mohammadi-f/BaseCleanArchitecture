@@ -21,7 +21,7 @@ namespace API.DTOs
         [Required]
         public string Username { get; set; }
 
-        public string UserRole { get; set; }
-        
+        public List<string> UserRoles { get; set; }
+
     }
 }
